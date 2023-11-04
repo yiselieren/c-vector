@@ -148,8 +148,10 @@ typedef struct cvector_metadata_t {
             const size_t cv_sz__ = cvector_size(vec);                                       \
             if ((i) < cv_sz__) {                                                            \
                 cvector_elem_destructor_t elem_destructor__ = cvector_elem_destructor(vec); \
-                if (elem_destructor__) {                                                    \
-                    elem_destructor__(&(vec)[i]);                                           \
+                if (elem_destructor__ && (vec)[i]) {                                        \
+                    void *p__;                                                              \
+                    memcpy(&p__, &(vec)[i], sizeof(void*));                                 \
+                    elem_destructor__(p__);                                                 \
                 }                                                                           \
                 cvector_set_size((vec), cv_sz__ - 1);                                       \
                 memmove(                                                                    \
@@ -172,7 +174,11 @@ typedef struct cvector_metadata_t {
             if (elem_destructor__) {                                                    \
                 size_t i__;                                                             \
                 for (i__ = 0; i__ < cvector_size(vec); ++i__) {                         \
-                    elem_destructor__(&(vec)[i__]);                                     \
+                    if ((vec)[i__]) {                                                   \
+                        void *p__;                                                      \
+                        memcpy(&p__, &(vec)[i__], sizeof(void*));                       \
+                        elem_destructor__(p__);                                         \
+                    }                                                                   \
                 }                                                                       \
             }                                                                           \
             cvector_set_size(vec, 0);                                                   \
@@ -192,9 +198,11 @@ typedef struct cvector_metadata_t {
             if (elem_destructor__) {                                                    \
                 size_t i__;                                                             \
                 for (i__ = 0; i__ < cvector_size(vec); ++i__) {                         \
-                    void *p__;                                                          \
-                    memcpy(&p__, &(vec)[i__], sizeof(void*));                           \
-                    elem_destructor__(p__);                                             \
+                    if ((vec)[i__]) {                                                   \
+                        void *p__;                                                      \
+                        memcpy(&p__, &(vec)[i__], sizeof(void*));                       \
+                        elem_destructor__(p__);                                         \
+                    }                                                                   \
                 }                                                                       \
             }                                                                           \
             cvector_clib_free(p1__);                                                    \
@@ -275,8 +283,10 @@ typedef struct cvector_metadata_t {
 #define cvector_pop_back(vec)                                                       \
     do {                                                                            \
         cvector_elem_destructor_t elem_destructor__ = cvector_elem_destructor(vec); \
-        if (elem_destructor__) {                                                    \
-            elem_destructor__(&(vec)[cvector_size(vec) - 1]);                       \
+        if (elem_destructor__ && (vec)[cvector_size(vec) - 1]) {                    \
+            void *p__;                                                              \
+            memcpy(&p__, &(vec)[cvector_size(vec) - 1], sizeof(void*));             \
+            elem_destructor__(p__);                                                 \
         }                                                                           \
         cvector_set_size((vec), cvector_size(vec) - 1);                             \
     } while (0)

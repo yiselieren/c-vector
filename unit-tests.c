@@ -1,6 +1,4 @@
 
-
-#define CVECTOR_LOGARITHMIC_GROWTH
 #include "cvector.h"
 #include "cvector_utils.h"
 #include "utest/utest.h"
@@ -272,9 +270,22 @@ UTEST(test, sparse_vector) {
     cvector_free(v);
 }
 
+UTEST(test, sparse_vector_str) {
+    cvector_vector_type(char *) v = NULL;
+
+    cvector_push_back(v, "hello");
+    cvector_resize(v, 21);
+    v[20] = "world";
+
+    ASSERT_TRUE(strcmp(v[0], "hello") == 0);
+    ASSERT_TRUE(v[5] == NULL);
+    ASSERT_TRUE(strcmp(v[20], "world") == 0);
+    cvector_free(v);
+}
+
 UTEST(test, sparse_vector_with_free) {
     cvector_vector_type(char *) v = NULL;
-    cvector_init(v, 30, cvector_free_destructor, 0);
+    cvector_init(v, 0, cvector_free_destructor, 0);
 
     char *ptr = strdup("hello");
     cvector_push_back(v, ptr);

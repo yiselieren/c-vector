@@ -114,7 +114,7 @@ typedef struct cvector_metadata_t {
 #define cvector_reserve(vec, n)                  \
     do {                                         \
         size_t cv_cap__ = cvector_capacity(vec); \
-        if (cv_cap__ < ((size_t)n)) {            \
+        if ((int)cv_cap__ < ((int)n)) {          \
             cvector_grow((vec), (n));            \
         }                                        \
     } while (0)
@@ -131,7 +131,7 @@ typedef struct cvector_metadata_t {
 #define cvector_resize(vec, n)                  \
     do {                                        \
         cvector_reserve(vec, n);                \
-        cvector_vec_to_base(vec)->size = n;     \
+        cvector_vec_to_base(vec)->size = (n);   \
     } while (0)
 
 /*
@@ -145,7 +145,7 @@ typedef struct cvector_metadata_t {
 #define cvector_init(vec, capacity, elem_destructor_fn, grow_strategy)  \
     do {                                                                \
         if (!(vec)) {                                                   \
-            cvector_reserve((vec), capacity);                           \
+            cvector_reserve((vec), (capacity) ? (capacity) : 1);        \
             cvector_set_elem_destructor((vec), (elem_destructor_fn));   \
             cvector_set_grow_strategy((vec), (grow_strategy));          \
         }                                                               \
@@ -392,7 +392,7 @@ typedef struct cvector_metadata_t {
             assert(cv_p2__);                                                          \
             (vec) = cvector_base_to_vec(cv_p2__);                                     \
             size_t old_count = cvector_size(vec);                                     \
-            if (count > old_count) {                                                  \
+            if ((int)count > (int)old_count) {                                        \
                 bzero(&vec[old_count], (count-old_count) * sizeof(vec[0]));           \
             }                                                                         \
         } else {                                                                      \

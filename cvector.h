@@ -119,6 +119,21 @@ typedef struct cvector_metadata_t {
         }                                        \
     } while (0)
 
+/**
+ * @brief cvector_reserve - Requests that the vector size be at least enough
+ * to contain n elements. If n is greater than the current vector capacity, the
+ * function causes the container to reallocate its storage increasing its
+ * capacity to n (or greater). After this VECTOR[n-1] usage is legal
+ * @param vec - the vector
+ * @param n - New size for the vector.
+ * @return void
+ */
+#define cvector_resize(vec, n)                  \
+    do {                                        \
+        cvector_reserve(vec, n);                \
+        cvector_vec_to_base(vec)->size = n;     \
+    } while (0)
+
 /*
  * @brief cvector_init - Initialize a vector.  The vector must be NULL for this to do anything.
  * @param vec - the vector
@@ -376,9 +391,14 @@ typedef struct cvector_metadata_t {
             void *cv_p2__ = cvector_clib_realloc(cv_p1__, cv_sz__);                   \
             assert(cv_p2__);                                                          \
             (vec) = cvector_base_to_vec(cv_p2__);                                     \
+            size_t old_count = cvector_size(vec);                                     \
+            if (count > old_count) {                                                  \
+                bzero(&vec[old_count], (count-old_count) * sizeof(vec[0]));           \
+            }                                                                         \
         } else {                                                                      \
             void *cv_p__ = cvector_clib_malloc(cv_sz__);                              \
             assert(cv_p__);                                                           \
+            bzero(cv_p__, cv_sz__);                                                   \
             (vec) = cvector_base_to_vec(cv_p__);                                      \
             cvector_set_size((vec), 0);                                               \
             cvector_set_elem_destructor((vec), NULL);                                 \

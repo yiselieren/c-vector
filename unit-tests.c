@@ -206,6 +206,10 @@ struct data_t {
     int a, b, c, d;
 };
 
+void cvector_free_destructor(void *p) {
+    free(p);
+}
+
 struct data_t **test(size_t count, ...) {
     cvector_vector_type(struct data_t *) vec = NULL;
 
@@ -222,6 +226,7 @@ struct data_t **test(size_t count, ...) {
     }
 
     va_end(valist);
+    cvector_set_elem_destructor(vec, cvector_free_destructor);
     return vec;
 }
 
@@ -235,10 +240,6 @@ UTEST(test, test_complex_insert) {
     ASSERT_TRUE(vec[2]->num == 2);
     ASSERT_TRUE(vec[3]->num == 1);
     cvector_free(vec);
-}
-
-void cvector_free_destructor(void *p) {
-    free(p);
 }
 
 UTEST(test, derefence_destructor) {
@@ -256,6 +257,36 @@ UTEST(test, derefence_destructor) {
 
     cvector_vector_type(char *) *vec_ptr = &v;
     cvector_free(*vec_ptr);
+}
+
+UTEST(test, sparse_vector) {
+    cvector_vector_type(int) v = NULL;
+
+    cvector_push_back(v, 42);
+    cvector_resize(v, 21);
+    v[20] = 84;
+
+    ASSERT_TRUE(v[0] == 42);
+    ASSERT_TRUE(v[5] == 0);
+    ASSERT_TRUE(v[20] == 84);
+    cvector_free(v);
+}
+
+UTEST(test, sparse_vector_with_free) {
+    cvector_vector_type(char *) v = NULL;
+    cvector_init(v, 30, cvector_free_destructor, 0);
+
+    char *ptr = strdup("hello");
+    cvector_push_back(v, ptr);
+
+    ptr = strdup("world");
+    cvector_resize(v, 21);
+    v[20] = ptr;
+
+    ASSERT_TRUE(strcmp(v[0], "hello") == 0);
+    ASSERT_TRUE(v[5] == NULL);
+    ASSERT_TRUE(strcmp(v[20], "world") == 0);
+    cvector_free(v);
 }
 
 UTEST_MAIN();
